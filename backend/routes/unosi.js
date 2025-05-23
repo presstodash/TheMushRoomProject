@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const unosController = require('../controllers/unosiController');
+const unosiController = require('../controllers/unosiController');
 
-router.get('/', unosController.getSviUnosi);
-router.get('/:id', unosController.getJedanUnos);
-router.post('/', unosController.kreirajUnos);
-router.put('/:id', unosController.azurirajUnos);
-router.delete('/:id', unosController.obrisiUnos);
+const verifyToken = require('../middleware/authMiddleware');
+router.get('/', verifyToken, unosiController.getSviUnosi);
+router.get('/:id', verifyToken,unosiController.getJedanUnos);
+router.post('/', verifyToken, unosiController.kreirajUnos);
+router.put('/:id', verifyToken, unosiController.azurirajUnos);
+router.delete('/:id', verifyToken, unosiController.obrisiUnos);
 
 module.exports = router;

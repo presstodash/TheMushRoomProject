@@ -1,26 +1,21 @@
-const { verifyToken } = require('../util/jwUtils');
-const korisnikModel = require ('../models/korisnikModel');
+const jwt = require('jsonwebtoken');
 
-exports.authenticate = async (req, res, next) => {
-    try{
-        const token = req.header('Authorization')?.replace('Bearer ', '');
-        if (!token) throw new Error ('Access denied');
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-        const decoded = verifyToken(token);
-        const korisnik = await korisnikModel.getById(decoded.id);
-        if (!korisnik) throw new Error ('User not found');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token nije poslan' });
+  }
 
-        req.korisnik = korisnik;
-        next();
-    }
-    catch(err){
-        res.status(401).json(err);
-    }
-};
+  const token = authHeader.split(' ')[1];
 
-exports.iskusanKorisnik = (req, res, next) => {
-    if (req.korisnik.uloga != 'iskusni') {
-        return res.status(403).json ({poruka : 'Potreban status: Iskusni'});
-    }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.korisnik = decoded;
     next();
+  } catch (err) {
+    return res.status(403).json({ error: 'Token nije valjan ili je istekao' });
+  }
 };
+
+module.exports = verifyToken;
