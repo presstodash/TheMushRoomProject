@@ -1,21 +1,20 @@
-const jwt = require('jsonwebtoken');
+const { verifyToken } = require('../utils/jwtUtils');
 
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Token nije poslan' });
-  }
-
-  const token = authHeader.split(' ')[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.korisnik = decoded;
-    next();
-  } catch (err) {
-    return res.status(403).json({ error: 'Token nije valjan ili je istekao' });
-  }
+module.exports = (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'Niste autorizirani' });
+        }
+        const token = authHeader.split(' ')[1];
+        const decoded = verifyToken(token);
+        
+        req.user = {
+            id: decoded.id
+        };
+        next();
+    } catch (err) {
+        res.status(401).json({ error: 'Nevažeći token' });
+    }
 };
-
-module.exports = verifyToken;

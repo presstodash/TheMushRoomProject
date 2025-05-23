@@ -1,85 +1,41 @@
-const pool = require("../db");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const authService = require('../services/authService');
+const { generateToken } = require('../utils/jwtUtils');
 
-const login = async (req, res) => {
-    const { email, lozinka } = req.body;
-  
+exports.register = async (req, res, next) =>{
     try {
-        const rezultat = await pool.query(
-            "SELECT id_korisnik, email, lozinka, ime FROM Korisnik WHERE email = $1",
-            [email]
-        );
-    
-        if (rezultat.rows.length === 0) {
-            return res.status(401).json({ error: "Ne postoji korisnik s tim emailom" });
+        const { email, lozinka, ime } = req.body;
+        if (!ime || !lozinka || !email) {
+            return res.status(400).json({error: "Molimo popunite sva polja!"});
         }
-    
-        const korisnik = rezultat.rows[0];
-    
-        const isMatch = await bcrypt.compare(lozinka, korisnik.lozinka);
-    
-        if (!isMatch) {
-            return res.status(401).json({ error: "Netočna lozinka" });
-        }
-    
-        const token = jwt.sign(
-            { id: korisnik.id_korisnik, ime: korisnik.ime },
-            process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRATION || "2h" }
-        );
 
-        return res.json({
-            token,
-            ime: korisnik.ime
-        });
-        } catch (err) {
-            console.error("Greška u loginu:", err.message);
-            res.status(500).json({ error: "Greška na serveru" });
-        }
-    };
-
-  const register = async (req, res) => {
-    const { email, ime, lozinka } = req.body;
-  
-    if (!email || !ime || !lozinka) {
-      return res.status(400).json({ error: "Sva polja su obavezna" });
+        const korisnik = await authService.register (email, lozinka, ime);
+        const token = generateToken(korisnik.id_korisnik);
+        res.status(201).json( { token, korisnik: {
+                                        id: korisnik.id_korisnik,
+                                        ime: korisnik.ime,
+                                        email: korisnik.email
+        }});
     }
-  
+    catch (err){
+        next(err);
+    }
+};
+
+exports.login = async (req, res, next) => {
     try {
-        const postoji = await pool.query(
-            "SELECT id_korisnik FROM Korisnik WHERE email = $1",
-            [email]
-        );
-        if (postoji.rows.length > 0) {
-            return res.status(409).json({ error: "Korisnik s tim emailom već postoji" });
+        const { email, lozinka } = req.body;
+        if (!email || !lozinka) { 
+            return res.status(400).json({error: "Molimo popunite sva polja!"});
         }
-    
-        const salt = await bcrypt.genSalt(12);
-        const hashedLozinka = await bcrypt.hash(lozinka, salt);
-    
-        const rezultat = await pool.query(
-            `INSERT INTO Korisnik (email, lozinka, sol, ime, datum_registracije, uloga)
-            VALUES ($1, $2, $3, $4, CURRENT_DATE, 'osnovni')
-            RETURNING id_korisnik, ime`,
-            [email, hashedLozinka, salt, ime]
-        );
-    
-        const noviKorisnik = rezultat.rows[0];
-        const token = jwt.sign(
-            { id: noviKorisnik.id_korisnik, ime: noviKorisnik.ime },
-            process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRATION || "2h" }
-        );
-    
-        return res.status(201).json({
-            token,
-            ime: noviKorisnik.ime,
-        });
-    } catch (err) {
-        console.error("Greška pri registraciji:", err.message);
-        res.status(500).json({ error: "Greška na serveru" });
+        const korisnik = await authService.login (email, lozinka);
+        const token = generateToken(korisnik.id_korisnik);
+        res.json( { token, korisnik: {
+                            id: korisnik.id_korisnik,
+                            ime: korisnik.ime,
+                            email: korisnik.email
+        }});
     }
-  };
-
-module.exports = { login, register };
+    catch (err){
+        next(err);
+    }
+}

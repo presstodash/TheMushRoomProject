@@ -33,6 +33,7 @@ export default function Login() {
       window.location.reload();
     } catch (err) {
       setGreska('Greška pri spajanju na server');
+      console.error(err);
     }
   };
 
