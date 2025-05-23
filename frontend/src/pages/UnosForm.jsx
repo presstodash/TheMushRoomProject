@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import './UnosForm.css';
 
 export default function UnosForm() {
   const navigate = useNavigate();
+  const { id } = useParams();
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -25,19 +27,37 @@ export default function UnosForm() {
   const korisnikId = JSON.parse(atob(token.split(".")[1]))?.id;
 
   useEffect(() => {
-    fetch("/api/gljive")
+    fetch(`${import.meta.env.VITE_API_URL}/gljive`)
       .then((res) => res.json())
       .then((data) => setGljive(data));
-
-    fetch("/api/lokacije")
+  
+    fetch(`${import.meta.env.VITE_API_URL}/lokacije`)
       .then((res) => res.json())
       .then((data) => setLokacije(data));
   }, []);
 
   useEffect(() => {
-    const izabrana = gljive.find((g) => g.id_gljiva === parseInt(gljivaId));
-    setSlikaUrl(izabrana?.slika_url || "");
-  }, [gljivaId, gljive]);
+    if (id && gljive.length > 0 && lokacije.length > 0) {
+      fetch(`${import.meta.env.VITE_API_URL}/unosi/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.id_gljiva && data?.id_lokacija) {
+            setGljivaId(data.id_gljiva.toString());
+            setLokacijaId(data.id_lokacija.toString());
+          } else {
+            throw new Error("Neispravan odgovor servera");
+          }
+        })
+        .catch((err) => {
+          console.error("Greška pri dohvaćanju unosa:", err);
+          setGreska("Neuspješno dohvaćanje unosa za uređivanje.");
+        });
+    }
+  }, [id, gljive, lokacije]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,8 +85,14 @@ export default function UnosForm() {
       }
 
       
-      const res = await fetch("/api/unosi", {
-        method: "POST",
+      const endpoint = id
+        ? `${import.meta.env.VITE_API_URL}/unosi/${id}`
+        : `${import.meta.env.VITE_API_URL}/unosi`;
+
+      const method = id ? "PUT" : "POST";
+
+      const res = await fetch(endpoint, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -90,32 +116,34 @@ export default function UnosForm() {
   };
 
   return (
-    <div className="unos-form">
-      <h2>Unos nove gljive</h2>
+    <div className="unos-container">
+      <h2>{id ? "Ažuriranje unosa" : "Stvaranje novog unosa"}</h2>
       <form onSubmit={handleSubmit}>
         <label>Gljiva:</label>
         <select value={gljivaId} onChange={(e) => setGljivaId(e.target.value)} required>
           <option value="">-- Odaberi gljivu --</option>
           {gljive.map((g) => (
             <option key={g.id_gljiva} value={g.id_gljiva}>
-              {g.naziv}
+              {g.hrvatski_naziv} ({g.latinski_naziv})
             </option>
           ))}
         </select>
-
-        {slikaUrl && <img src={slikaUrl} alt="gljiva" style={{ width: "150px", marginTop: "10px" }} />}
-
+  
+        {slikaUrl && (
+          <img src={slikaUrl} alt="Odabrana gljiva" className="unos-slika" />
+        )}
+  
         <label>Lokacija:</label>
         <select value={lokacijaId} onChange={(e) => setLokacijaId(e.target.value)} required>
           <option value="">-- Odaberi lokaciju --</option>
           {lokacije.map((l) => (
             <option key={l.id_lokacija} value={l.id_lokacija}>
-              {l.naziv}
+              {l.naziv_lokacije}
             </option>
           ))}
           <option value="nova">+ Dodaj novu lokaciju</option>
         </select>
-
+  
         {lokacijaId === "nova" && (
           <input
             type="text"
@@ -125,12 +153,12 @@ export default function UnosForm() {
             required
           />
         )}
-
+  
         <button type="submit">Spremi unos</button>
       </form>
-
-      {greska && <p style={{ color: "red" }}>{greska}</p>}
-      {poruka && <p style={{ color: "green" }}>{poruka}</p>}
+  
+      {greska && <p className="unos-poruka error">{greska}</p>}
+      {poruka && <p className="unos-poruka success">{poruka}</p>}
     </div>
   );
 }

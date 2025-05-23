@@ -1,19 +1,19 @@
 .home-container {
     text-align: center;
     margin-top: 20px;
-  }
+}
   
-  .page-title {
+.page-title {
     font-size: 2rem;
     color: #87c1ff;
-  }
+}
   
-  .welcome-text {
+.welcome-text {
     font-size: 1.2rem;
     color: #333;
-  }
+}
   
-  .link-button {
+.link-button {
     display: inline-block;
     margin-top: 20px;
     padding: 10px 20px;
@@ -22,8 +22,8 @@
     text-decoration: none;
     border-radius: 5px;
     cursor: pointer;
-  }
+}
   
-  .link-button:hover {
+.link-button:hover {
     background-color: #0056b3;
-  }
+}

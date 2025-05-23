@@ -18,6 +18,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="unos" element={<UnosForm />} />
+          <Route path="/unosi/:id/uredi" element={<UnosForm />} />
           <Route path="unosi" element={<UnosiList />} />
         </Route>
       </Routes>

@@ -15,6 +15,7 @@ export default function Header({ title, subtitle }) {
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('ime_korisnik');
         navigate('/login');
+        window.location.reload();
     };
   
     return (
