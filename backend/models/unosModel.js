@@ -18,7 +18,7 @@ const create = async ({id_gljiva, id_lokacija, id_korisnik }) => {
         'INSERT INTO Unos (id_gljiva, id_korisnik, id_lokacija, datum_unosa) VALUES ($1, $2, $3, NOW()) RETURNING *',
         [id_gljiva, id_korisnik, id_lokacija]
     );
-    return result.row[0];
+    return result.rows[0];
 };
 
 

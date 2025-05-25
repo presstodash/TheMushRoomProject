@@ -13,6 +13,8 @@ body {
     background-color: #438163;
     animation: siteload 0.2s;
     font-family: 'Chewy', cursive;
+    background-image: url('./assets/mushroomtexture.png');
+    background-repeat: repeat;
 }
   
 @keyframes siteload {

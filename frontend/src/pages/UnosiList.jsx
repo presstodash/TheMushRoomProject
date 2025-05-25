@@ -107,6 +107,7 @@ export default function UnosiList() {
                     {unos.slika && <img src={unos.slika} alt="gljiva" />}
                     <div className="unosi-kartica-info">
                       <p><strong>Unos #{index + 1}</strong></p>
+                      <p><strong>Datum:</strong> {unos.datum_unosa}</p>
                       <p><strong>Gljiva (HR):</strong> {unos.hrvatski_naziv}</p>
                       <p><strong>Gljiva (LAT):</strong> <em>{unos.latinski_naziv}</em></p>
                       <p><strong>Lokacija:</strong> {unos.lokacija}</p>

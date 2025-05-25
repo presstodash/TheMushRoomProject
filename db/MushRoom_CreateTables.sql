@@ -62,6 +62,7 @@ CREATE TABLE Unos (
     id_gljiva INT NOT NULL,
     id_lokacija INT NOT NULL,
     id_korisnik INT NOT NULL,
+    datum_unosa DATE DEFAULT CURRENT_DATE,
     FOREIGN KEY (id_gljiva) REFERENCES Gljiva(id_gljiva),
     FOREIGN KEY (id_lokacija) REFERENCES Lokacija(id_lokacija),
     FOREIGN KEY (id_korisnik) REFERENCES Korisnik(id_korisnik)

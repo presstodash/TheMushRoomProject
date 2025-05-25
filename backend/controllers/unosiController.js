@@ -1,22 +1,24 @@
 const pool = require('../db');
 
 const kreirajUnos = async (req, res) => {
-    const { id_gljiva, id_lokacija } = req.body;
-    const id_korisnik = req.korisnik.id;
-
     try {
-        const result = await pool.query(
-            `INSERT INTO Unos (id_gljiva, id_korisnik, id_lokacija)
-             VALUES ($1, $2, $3) RETURNING id_unos`,
-            [id_gljiva, id_korisnik, id_lokacija]
-        );
-
-        res.status(201).json({ poruka: 'Unos dodan', id_unos: result.rows[0].id_unos });
+      const { id_gljiva, id_lokacija } = req.body;
+      const id_korisnik = req.korisnik.id;
+  
+      const noviUnos = await unosModel.create({
+        id_gljiva,
+        id_lokacija,
+        id_korisnik
+      });
+  
+      return res.status(201).json({
+        poruka: 'Unos dodan',
+        unos: noviUnos
+      });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ poruka: 'Greška pri unosu' });
+      return res.status(400).json({ error: err.message });
     }
-};
+  };
 
 const getSviUnosi = async (req, res) => {
     const id_korisnik = req.korisnik.id;
@@ -28,7 +30,8 @@ const getSviUnosi = async (req, res) => {
             g.hrvatski_naziv, 
             g.latinski_naziv, 
             g.slika, 
-            l.naziv_lokacije AS lokacija
+            l.naziv_lokacije AS lokacija,
+            TO_CHAR(u.datum_unosa, 'YYYY-MM-DD') AS datum_unosa
             FROM Unos u
             JOIN Gljiva g ON u.id_gljiva = g.id_gljiva
             JOIN Lokacija l ON u.id_lokacija = l.id_lokacija
