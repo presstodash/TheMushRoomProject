@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+const pool = require('../db');
 const validationService = require('../services/validationService');
 
 const checkDuplicates = async (id_gljiva, id_lokacija, id_korisnik) => {
